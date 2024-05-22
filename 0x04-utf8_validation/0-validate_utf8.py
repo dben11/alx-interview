@@ -21,11 +21,13 @@ def validUTF8(data):
 
     # For each integer in the data array
     for num in data:
-        # Get the binary representation. We only need the least significant 8 bits
+        # Get the binary representation. We only need the
+        #least significant 8 bits
         # for any given number, so we discard the rest.
         bin_rep = format(num, '#010b')[-8:]
 
-        # If this is the case then we are to start to parse a new UTF-8 character.
+        # If this is the case then we are to start to parse
+        #a new UTF-8 character.
         if n_bytes == 0:
             # Get the number of 1s in the beginning of the string.
             for bit in bin_rep:
