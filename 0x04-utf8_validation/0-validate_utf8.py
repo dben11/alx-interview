@@ -51,4 +51,3 @@ def validUTF8(data):
     # This is for the case where we might not have the complete data for
     # a particular UTF-8 character.
     return n_bytes == 0
-
