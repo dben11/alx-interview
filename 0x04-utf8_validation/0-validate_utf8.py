@@ -16,40 +16,57 @@ integer
 
 
 def validUTF8(data):
-    # Number of bytes in the current UTF-8 character
-    n_bytes = 0
+    """ Summarizig this
 
-    # For each integer in the data array
-    for num in data:
-        # Get the binary representation. We only need the
-        #least significant 8 bits
-        # for any given number, so we discard the rest.
-        bin_rep = format(num, '#010b')[-8:]
+    Args:
+            data (list[int]): a list of integers
+    """
+    expected_continuation_bytes = 0
 
-        # If this is the case then we are to start to parse
-        #a new UTF-8 character.
-        if n_bytes == 0:
-            # Get the number of 1s in the beginning of the string.
-            for bit in bin_rep:
-                if bit == '0': break
-                n_bytes += 1
+    # Define bit patterns for UTF-8 encoding
+    UTF8_BIT_1 = 1 << 7  # 10000000
+    UTF8_BIT_2 = 1 << 6  # 01000000
 
-            # 1 byte characters
-            if n_bytes == 0:
+    # Loop over each byte in the input data
+    for byte in data:
+        # Initialize a mask to check for leading
+        # 1's in the current byte
+        leading_one_mask = 1 << 7
+
+        # If we are not currently expecting any
+        # continuation bytes
+        if expected_continuation_bytes == 0:
+            # Count the number of leading 1's in the
+            # current byte to determine the number of
+            # continuation bytes
+            while leading_one_mask & byte:
+                expected_continuation_bytes += 1
+                leading_one_mask = leading_one_mask >> 1
+
+            # If the byte is not a multi-byte sequence,
+            # move to the next byte
+            if expected_continuation_bytes == 0:
                 continue
 
-            # Invalid scenarios according to the rules of the problem.
-            if n_bytes == 1 or n_bytes > 4:
+            # If the number of continuation bytes is not
+            # between 2 and 4, the sequence is invalid
+            if expected_continuation_bytes == 1 or\
+                    expected_continuation_bytes > 4:
                 return False
+
+        # If we are expecting continuation bytes
         else:
-            # Else, we are to account for the number of bytes that indicate the
-            # current UTF-8 character.
-            if not (bin_rep[0] == '1' and bin_rep[1] == '0'):
+            # Check that the byte starts with a "10"
+            # prefix and not a "11" prefix
+            if not (byte & UTF8_BIT_1 and not (byte & UTF8_BIT_2)):
                 return False
 
-        # We reduce the number of bytes to process by 1 after each integer.
-        n_bytes -= 1
+        # Decrement the expected number of continuation bytes
+        expected_continuation_bytes -= 1
 
-    # This is for the case where we might not have the complete data for
-    # a particular UTF-8 character.
-    return n_bytes == 0
+    # If we have processed all bytes and are not expecting
+    # any more continuation bytes, the sequence is valid
+    if expected_continuation_bytes == 0:
+        return True
+    else:
+        return False
